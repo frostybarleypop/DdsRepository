@@ -1,6 +1,6 @@
 import { Component, Inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { RequestOptions } from 'http';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+//import 'rxjs/add/operator/toPromise';
 
 @Component({
   selector: 'app-fetch-data',
@@ -12,7 +12,7 @@ export class FetchDataComponent {
   public user: string;
   public pass: string;
   private url;
-  private token: string;
+  private token: any;
   private myHttp: HttpClient;
 
   constructor(http: HttpClient, @Inject('BASE_URL') baseUrl: string) {
@@ -31,8 +31,8 @@ export class FetchDataComponent {
     const headers: HttpHeaders = new HttpHeaders();
     headers.set('Content-Type', 'application/json');
     const opts = {
-      headers: new HttpHeaders({ 'Content-Type': 'application/json' })// ,
-      // responseType: json
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }) ,
+      responseType: 'text'
     };
     console.log({ 'username': this.user, 'password': this.pass });
     //this.myHttp.post<string>(this.url + 'api/Authenticate', { 'username': this.user, 'password': this.pass }, opts)
@@ -41,12 +41,15 @@ export class FetchDataComponent {
     //this.getData();
 
      //tslint:disable-next-line:max-line-length
-     this.myHttp.post<string>(this.url + 'api/Authenticate', { 'username': this.user, 'password': this.pass }, opts).toPromise().then(data => {
-      console.log('inside promise result', data);
-      this.token = data.value as string;
+    this.myHttp.post<string>(this.url + 'api/Authenticate', { 'username': this.user, 'password': this.pass }, opts)
+      .toPromise()
+      .then(res => {
+       
+      console.log('inside promise result', res);
+        this.token = res;
       console.log('token:', this.token);
       this.getData();
-     }).catch(err => console.log(err));
+     }).catch(err => console.log('post error',err));
     
 
   }
