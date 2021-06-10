@@ -22,11 +22,11 @@ namespace DDSPatient.Controllers
 
         // GET: api/Patient
         [HttpGet]
-        public IActionResult Get()
+        public async Task<IActionResult> Get()
         {
             try
             {
-                return Ok(_repo.GetAllPatients());
+                return Ok( await _repo.GetAllPatients());
             }
             catch (Exception e)
             {

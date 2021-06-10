@@ -3,27 +3,34 @@
 <p>This component demonstrates fetching data from the server.</p>
 
 <p *ngIf="!records"><em>Loading...</em></p>
-
-<table class='table table-striped' aria-labelledby="tableLabel" *ngIf="records">
-  <thead>
-    <tr>
-      <th>Id</th>
-      <th>First Name</th>
-      <th>Last Name</th>
-      <th>Last x-Ray</th>
-    </tr>
-  </thead>
-  <tbody *ngFor="let record of records">
-    <tr >
-      <td>{{record.id}}</td>
-      <td>{{record.firstName}}</td>
-      <td>{{record.lastName}}</td>
-      <td><img src="{{record.imageUrl}}" alt="{{record.lastName}} x-ray" /></td>
-    </tr>
-    <tr *ngFor="let visit of record.visits">
-      <td>Last Visit Date: {{visit.visitDate | date:'short'}}</td>
-      <td>Notes: {{visit.notes}}</td>
-    </tr>
-  </tbody>
+<p *ngIf="unauthenticated">
+  <em>Please Login</em>
+</p>
+<table class='table table-striped' aria-labelledby="tableLabel" *ngIf="unauthenticated">
+  <tr><td>Username:</td><td><input name="username" [(ngModel)]="user" /></td></tr>
+  <tr><td>Password:</td><td><input name="password" [(ngModel)]="pass" /></td></tr>
+  <tr><td></td><td><button name="login" (click)="loginUser()">Login</button></td></tr>
 </table>
+  <table class='table table-striped' aria-labelledby="tableLabel" *ngIf="records">
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Last x-Ray</th>
+      </tr>
+    </thead>
+    <tbody *ngFor="let record of records">
+      <tr>
+        <td>{{record.id}}</td>
+        <td>{{record.firstName}}</td>
+        <td>{{record.lastName}}</td>
+        <td><img src="{{record.imageUrl}}" alt="{{record.lastName}} x-ray" /></td>
+      </tr>
+      <tr *ngFor="let visit of record.visits">
+        <td>Last Visit Date: {{visit.visitDate | date:'short'}}</td>
+        <td>Notes: {{visit.notes}}</td>
+      </tr>
+    </tbody>
+  </table>
 

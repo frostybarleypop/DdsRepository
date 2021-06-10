@@ -1,4 +1,5 @@
 using DDSPatient.Repository;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -22,32 +23,35 @@ namespace DDSPatient
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //add concrete classes here
-            services.AddScoped<IPatientRepository, MockPatientRepo>();
-            services.AddSingleton<IAuthorizationHandler, DdsAuthorizationHandler>();
+            
+            services.AddAuthentication("DdsAuthentication").AddScheme<AuthenticationSchemeOptions, DdsAuthenticationHandler>("DdsAuthentication", null);
+            //services.AddAuthentication().AddJwtBearer(options =>
+            //{
+            //    options.Audience = "http://localhost:57507/";
+            //    options.Authority = "http://localhost:57507/identity";
+            //    options.RequireHttpsMetadata = false;
+            //});
 
-            services.AddAuthentication().AddJwtBearer(options =>
-            {
-                options.Audience = "http://localhost:57507/";
-                options.Authority = "http://localhost:57507/identity";
-                options.RequireHttpsMetadata = false;
-            });
+            //services.AddAuthorization(options =>
+            //{
+            //    var defaultAuthPolicyBuilder = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme);
+            //    defaultAuthPolicyBuilder = defaultAuthPolicyBuilder.RequireAuthenticatedUser();
+            //    options.DefaultPolicy = defaultAuthPolicyBuilder.Build();
+            //});
 
-            services.AddAuthorization(options =>
-            {
-                var defaultAuthPolicyBuilder = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme);
-                defaultAuthPolicyBuilder = defaultAuthPolicyBuilder.RequireAuthenticatedUser();
-                options.DefaultPolicy = defaultAuthPolicyBuilder.Build();
-            });
-
-            services.AddControllersWithViews();
+            services.AddControllersWithViews().AddNewtonsoftJson(options =>
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp/dist";
             });
 
-        
+
+            //add concrete classes here
+            services.AddScoped<IPatientRepository, SqlPatientRepo>();
+            //services.AddSingleton<IAuthorizationHandler, DdsAuthorizationHandler>();
+            //services.AddSingleton<IAuthenticationHandler, DdsAuthenticationHandler>();
 
 
         }

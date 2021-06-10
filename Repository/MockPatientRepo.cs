@@ -17,7 +17,7 @@ namespace DDSPatient.Repository
             throw new NotImplementedException();
         }
 
-        public List<Patient> GetAllPatients()
+        public async Task<List<Patient>> GetAllPatients()
         {
             List<Patient> patients = new List<Patient>();
             for (int i = 0; i < 10; i++)
@@ -30,7 +30,7 @@ namespace DDSPatient.Repository
                 patient.Visits = new List<Visit> { new Visit { VisitDate = DateTime.Now.AddDays(i), Notes = $"Note #:{i}" } };
                 patients.Add(patient);
             }
-            return patients;
+            return  patients;
         }
 
         public Patient GetPatient(int id)

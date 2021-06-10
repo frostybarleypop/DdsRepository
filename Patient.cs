@@ -14,6 +14,8 @@ namespace DDSPatient
 
     public class Visit
     {
+        public int Id { get; set; }
+        public int CustomerId { get; set; }
         public DateTime VisitDate { get; set; }
         public string Notes { get; set; }
     }
