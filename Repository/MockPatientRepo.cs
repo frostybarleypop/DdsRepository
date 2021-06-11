@@ -7,12 +7,12 @@ namespace DDSPatient.Repository
 {
     public class MockPatientRepo : IPatientRepository
     {
-        public Patient CreatePatient(Patient value)
+        public Task<Patient> CreatePatient(Patient value)
         {
             throw new NotImplementedException();
         }
 
-        public void DeletePatient(int id)
+        public Task<int> DeletePatient(int id)
         {
             throw new NotImplementedException();
         }
@@ -33,7 +33,7 @@ namespace DDSPatient.Repository
             return  patients;
         }
 
-        public Patient GetPatient(int id)
+        public Task<Patient> GetPatient(int id)
         {
 
             List<Patient> patients = new List<Patient>();
@@ -47,10 +47,10 @@ namespace DDSPatient.Repository
                 patient.Visits = new List<Visit> { new Visit { VisitDate = DateTime.Now.AddDays(i), Notes = $"Note #:{i}" } };
                 patients.Add(patient);
             }
-            return patients.FirstOrDefault(x => x.Id == id);
+            return new Task<Patient>(()=>patients.FirstOrDefault(x => x.Id == id));
         }
 
-        public Patient UpdatePatient(Patient patient)
+        public Task<Patient> UpdatePatient(Patient patient)
         {
             throw new NotImplementedException();
         }

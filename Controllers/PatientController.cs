@@ -37,11 +37,11 @@ namespace DDSPatient.Controllers
 
         // GET: api/Patient/5
         [HttpGet("{id}", Name = "Get")]
-        public IActionResult Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
             try
             {
-                return Ok(_repo.GetPatient(id));
+                return Ok(await _repo.GetPatient(id));
             }
             catch (Exception e)
             {
@@ -51,11 +51,11 @@ namespace DDSPatient.Controllers
 
         // POST: api/Patient
         [HttpPost]
-        public IActionResult Post([FromBody] Patient value)
+        public async Task<IActionResult> Post([FromBody] Patient value)
         {
             try
             {
-                return Ok(_repo.CreatePatient(value));
+                return Ok(await _repo.CreatePatient(value));
             }
             catch (Exception e)
             {
@@ -80,12 +80,11 @@ namespace DDSPatient.Controllers
 
         // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                _repo.DeletePatient(id);
-                return Ok();
+               return Ok(await _repo.DeletePatient(id));
             }
             catch (Exception e)
             {

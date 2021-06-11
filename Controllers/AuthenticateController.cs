@@ -29,7 +29,7 @@ namespace DDSPatient.Controllers
         [HttpPost]
         public IActionResult Post([FromBody] Credentials creds)
         {
-            return Ok($"{creds.username}:{creds.password}");
+            return Ok(new { value = $"{creds.username}:{creds.password}" });
         }
 
         // PUT: api/Authenticate/5

@@ -28,11 +28,11 @@ export class FetchDataComponent {
 
   public async loginUser() {
     console.log('button clicked');
-    const headers: HttpHeaders = new HttpHeaders();
-    headers.set('Content-Type', 'application/json');
+    //const headers: HttpHeaders = new HttpHeaders();
+    //headers.set('Content-Type', 'application/json');
     const opts = {
-      headers: new HttpHeaders({ 'Content-Type': 'application/json' }) ,
-      responseType: 'text'
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }) //,
+     // responseType: 'text'
     };
     console.log({ 'username': this.user, 'password': this.pass });
     //this.myHttp.post<string>(this.url + 'api/Authenticate', { 'username': this.user, 'password': this.pass }, opts)
@@ -41,12 +41,12 @@ export class FetchDataComponent {
     //this.getData();
 
      //tslint:disable-next-line:max-line-length
-    this.myHttp.post<string>(this.url + 'api/Authenticate', { 'username': this.user, 'password': this.pass }, opts)
+    this.myHttp.post<DdsAuth>(this.url + 'api/Authenticate', { 'username': this.user, 'password': this.pass }, opts)
       .toPromise()
       .then(res => {
        
       console.log('inside promise result', res);
-        this.token = res;
+        this.token = res.value;
       console.log('token:', this.token);
       this.getData();
      }).catch(err => console.log('post error',err));
@@ -87,4 +87,8 @@ interface PatientRecord {
 interface Visits {
   visitDate: Date;
   notes: string;
+}
+
+interface DdsAuth {
+  value: string;
 }

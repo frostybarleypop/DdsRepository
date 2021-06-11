@@ -16,44 +16,127 @@ namespace DDSPatient.Repository
 
         }
 
-        public Patient CreatePatient(Patient value)
+        public async Task<Patient> CreatePatient(Patient value)
         {
 
-            throw new NotImplementedException();
+            using (SqlConnection connection = new SqlConnection(SqlConnectionString))
+            {
+                //const string sql = "insert into SalesLT.Customer (NameStyle, Title, FirstName, LastName, MiddleName, suffix, CompanyName, SalesPerson, EmailAddress, phone, PasswordHash, PasswordSalt, rowguid, ModifiedDate) values (0, null, @first, @last, null, null, null, null, null, null, null, null, NEWID(), getdate())";
+
+                var parameters = new DynamicParameters();
+                parameters.Add("firstname", value.FirstName);
+                parameters.Add("lastname", value.LastName);
+                parameters.Add("newId", dbType: System.Data.DbType.Int32, direction: System.Data.ParameterDirection.Output);
+
+                var affectedRows = await connection.QueryAsync<int>("CreatePatient", parameters, commandType: System.Data.CommandType.StoredProcedure);
+                int newId = parameters.Get<int>("newId");
+                if (affectedRows.Any() && affectedRows.Count() > 0 && newId > 0)
+                {
+                    //const string sql1 = "select pid, FirstName, LastName, isnull(s.url,'https://juddimageblob.blob.core.windows.net/dds-records/ce532-fig04-number-system-adult.jpg') as imageurl, s.scandate  from SalesLT.Customer c left join scans s on c.CustomerID = s.customerid where c.firstname = @first and c.lastname = @last";
+                    //var results = await connection.QueryAsync<Patient>(sql1, parameters);
+                    //if (results.Any())
+                    //{
+                    return await GetPatient(newId);
+                    //}
+                    //else
+                    //{
+                    //     throw new Exception("Unable to retreive created patient");
+                    //}
+                }
+                throw new Exception("Unable to create new patient");
+            }
         }
 
-        public void DeletePatient(int id)
+        public async Task<int> DeletePatient(int id)
         {
-            throw new NotImplementedException();
+            using (SqlConnection connection = new SqlConnection(SqlConnectionString))
+            {
+                const string sql = "delete from patients where id = @Id";
+                var parameters = new DynamicParameters();
+                parameters.Add("@Id", id);
+                return await connection.ExecuteAsync(sql, parameters);
+            }
         }
 
         public async Task<List<Patient>> GetAllPatients()
         {
             using (SqlConnection connection = new SqlConnection(SqlConnectionString))
-            {                
+            {
                 var visits = await connection.QueryAsync<Visit>("select id, customerid, visitdate, notes from visits");
 
                 //const string sql = "select customerid as id, FirstName, LastName, 'https://res.cloudinary.com/mtree/image/upload/f_auto,q_auto,f_jpg,fl_attachment:ce532-fig04-number-system-adult/dentalcare/%2F-%2Fmedia%2Fdentalcareus%2Fprofessional-education%2Fce-courses%2Fcourse0501-0600%2Fce532%2Fimages%2Fce532-fig04-number-system-adult.jpg%3Fh%3D494%26la%3Den-us%26w%3D691%26v%3D1-201706011336?h=494&la=en-US&w=691' as imageUrl from SalesLT.Customer where customerid in @Ids";
-                const string sql = "select c.customerid as id, FirstName, LastName, isnull(s.url,'https://juddimageblob.blob.core.windows.net/dds-records/ce532-fig04-number-system-adult.jpg') as imageurl, s.scandate  from SalesLT.Customer c left join scans s on c.CustomerID = s.customerid where c.customerid in @Ids";
+                const string sql = "select p.id, FirstName, LastName, isnull(s.url,'https://juddimageblob.blob.core.windows.net/dds-records/ce532-fig04-number-system-adult.jpg') as imageurl, s.scandate  from patients p left join scans s on p.id = s.customerid where p.id in @Ids";
                 var parameters = new DynamicParameters();
                 parameters.Add("@Ids", visits.Select(p => p.CustomerId).Distinct());
 
                 var patients = (await connection.QueryAsync<Patient>(sql, parameters)).ToList();
-               
-               
+
+
                 patients.ForEach(p => p.Visits = visits.Where(v => v.CustomerId == p.Id).ToList());
                 return patients;
             }
         }
 
-        public Patient GetPatient(int id)
+        public async Task<Patient> GetPatient(int id)
         {
-            throw new NotImplementedException();
+            using (SqlConnection connection = new SqlConnection(SqlConnectionString))
+            {
+                const string sql = "select p.id, FirstName, LastName, isnull(s.url,'https://juddimageblob.blob.core.windows.net/dds-records/ce532-fig04-number-system-adult.jpg') as imageurl, s.scandate  from patients p left join scans s on p.id = s.customerid where p.id = @Id";
+                var parameters = new DynamicParameters();
+                parameters.Add("@Id", id);
+
+                var patients = (await connection.QueryAsync<Patient>(sql, parameters)).FirstOrDefault();
+                var visits = await connection.QueryAsync<Visit>("select id, customerid, visitdate, notes from visits where customerid = @Id", parameters);
+
+                patients.Visits = visits.ToList();
+                return patients;
+            }
         }
 
-        public Patient UpdatePatient(Patient patient)
+        public async Task<Patient> UpdatePatient(Patient patient)
         {
-            throw new NotImplementedException();
+            using (SqlConnection connection = new SqlConnection(SqlConnectionString))
+            {
+                const string sql = "update patients set firstname=@first, lastname=@last where id=@id";
+                var parameters = new DynamicParameters();
+                parameters.Add("@Id", patient.Id);
+                parameters.Add("@first", patient.FirstName);
+                parameters.Add("@last", patient.LastName);
+
+                var patients = (await connection.QueryAsync<Patient>(sql, parameters)).FirstOrDefault();
+
+                if (patient.Visits.Any(v => v.Id > 0))
+                {
+                    //update visits
+                    patient.Visits.Where(v => v.Id > 0).ToList().ForEach(async newvisit =>
+                       {
+                           const string visitsql = "update visits set notes=@notes, visitdate=@visitdate where customerid=@Id";
+                           var parms = new DynamicParameters();
+                           parms.Add("@Id", patient.Id);
+                           parms.Add("@notes", newvisit.Notes);
+                           parms.Add("@visitdate", newvisit.VisitDate);
+                           await connection.QueryAsync<Visit>(visitsql, parms);
+                       });
+
+                }
+                else
+                {
+                    if(patient.Visits.Any(v => v.Id == 0))
+                    {
+                        // add new visits
+                        patient.Visits.Where(v => v.Id == 0).ToList().ForEach(async newvisit =>
+                        {
+                            const string visitsql = "insert into visits (notes, visitdate, customerid) values (@notes,@visitdate,@Id)";
+                            var parms = new DynamicParameters();
+                            parms.Add("@Id", patient.Id);
+                            parms.Add("@notes", newvisit.Notes);
+                            parms.Add("@visitdate", newvisit.VisitDate);
+                            await connection.QueryAsync<Visit>(visitsql, parms);
+                        });
+                    }
+                }
+                return await GetPatient(patient.Id);
+            }
         }
     }
 }

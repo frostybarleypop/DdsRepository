@@ -8,9 +8,9 @@ namespace DDSPatient.Repository
    public interface IPatientRepository
     {
         Task<List<Patient>> GetAllPatients();
-        Patient GetPatient(int id);
-        Patient UpdatePatient(Patient patient);
-        void DeletePatient(int id);
-        Patient CreatePatient(Patient value);
+        Task<Patient> GetPatient(int id);
+        Task<Patient> UpdatePatient(Patient patient);
+        Task<int> DeletePatient(int id);
+        Task<Patient> CreatePatient(Patient value);
     }
 }
