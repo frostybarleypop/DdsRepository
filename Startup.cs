@@ -1,3 +1,4 @@
+using Dapper;
 using DDSPatient.Repository;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -23,22 +24,8 @@ namespace DDSPatient
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            
-            services.AddAuthentication("DdsAuthentication").AddScheme<AuthenticationSchemeOptions, DdsAuthenticationHandler>("DdsAuthentication", null);
-            //services.AddAuthentication().AddJwtBearer(options =>
-            //{
-            //    options.Audience = "http://localhost:57507/";
-            //    options.Authority = "http://localhost:57507/identity";
-            //    options.RequireHttpsMetadata = false;
-            //});
-
-            //services.AddAuthorization(options =>
-            //{
-            //    var defaultAuthPolicyBuilder = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme);
-            //    defaultAuthPolicyBuilder = defaultAuthPolicyBuilder.RequireAuthenticatedUser();
-            //    options.DefaultPolicy = defaultAuthPolicyBuilder.Build();
-            //});
-
+           services.AddAuthentication("DdsAuthentication").AddScheme<AuthenticationSchemeOptions, DdsAuthenticationHandler>("DdsAuthentication", null);
+           
             services.AddControllersWithViews().AddNewtonsoftJson(options =>
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
             // In production, the Angular files will be served from this directory
@@ -50,10 +37,8 @@ namespace DDSPatient
 
             //add concrete classes here
             services.AddScoped<IPatientRepository, SqlPatientRepo>();
-            //services.AddSingleton<IAuthorizationHandler, DdsAuthorizationHandler>();
-            //services.AddSingleton<IAuthenticationHandler, DdsAuthenticationHandler>();
-
-
+            
+            SqlMapper.AddTypeHandler(new TrimmedStringHandler()); //added type handler because dapper pulls back the whole width of the sql field
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

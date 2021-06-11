@@ -26,6 +26,7 @@ namespace DDSPatient.Controllers
         {
             try
             {
+
                 return Ok( await _repo.GetAllPatients());
             }
             catch (Exception e)
@@ -41,7 +42,12 @@ namespace DDSPatient.Controllers
         {
             try
             {
-                return Ok(await _repo.GetPatient(id));
+                var patient = await _repo.GetPatient(id);
+                if (patient is null || string.IsNullOrEmpty(patient.FirstName))
+                {
+                    return NotFound(id);
+                }
+                return Ok(patient);
             }
             catch (Exception e)
             {
@@ -66,11 +72,16 @@ namespace DDSPatient.Controllers
 
         // PUT: api/Patient/5
         [HttpPut("{id}")]
-        public  IActionResult Put(int id, [FromBody] Patient value)
+        public async  Task<IActionResult> Put(int id, [FromBody] Patient value)
         {
             try
             {
-                return Ok(_repo.UpdatePatient(value));
+                var patient = await _repo.GetPatient(value.Id);
+                if (patient is null || string.IsNullOrEmpty(patient.FirstName))
+                {
+                    return NotFound(value);
+                }
+                return Ok(await _repo.UpdatePatient(value));
             }
             catch (Exception e)
             {
@@ -84,7 +95,12 @@ namespace DDSPatient.Controllers
         {
             try
             {
-               return Ok(await _repo.DeletePatient(id));
+                var patient = await _repo.GetPatient(id);
+                if (patient is null || string.IsNullOrEmpty(patient.FirstName))
+                {
+                    return NotFound(id);
+                }
+                return Ok(await _repo.DeletePatient(patient));
             }
             catch (Exception e)
             {

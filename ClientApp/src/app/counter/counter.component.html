@@ -1,7 +1,68 @@
-<h1>Counter</h1>
+<h1>Tester</h1>
 
-<p>This is a simple example of an Angular component.</p>
+<p>This is a simple example of CRUD interface.</p>
+<ul>
+  <li><strong>Authenticate First</strong>. Enter a valid <em>User and Password</em> then click "Login". <em>User</em> must be equal to <em>Password</em> to be valid.</li>
+  <li><strong>Get by Id</strong>. Enter a valid <em>Customer Id</em> then click "Get By Id".</li>
+  <li><strong>Create Patient</strong>. Enter a <em>First</em> and <em>Last</em> name in the corresponding fields. <em>Customer Id</em> can be empty or 0, then click "Create Patient".</li>
+  <li><strong>Update Patient</strong>. With a valid <em>Customer Id</em>, change the <em>First</em> and/or <em>Last</em> names, then click "Update Patient".</li>
+  <li><strong>Delete Patient</strong>.  Enter a valid <em>Customer Id</em> then click "Delete Patient".</li>
+</ul>
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      User: <input name="user" [(ngModel)]="user" style="padding:2px; margin:5px;" />
+      Pass: <input name="pass" [(ngModel)]="pass" style="padding:2px; margin:5px;" />
+      <button (click)="login()" class="btn btn-primary" style="padding:2px; margin:5px;">Login</button>
+      <strong>Token:{{token}}</strong>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-12">
+      Customer Id:  <input name="custId" [(ngModel)]="custId" style="padding:2px; margin:5px;" />
+      FirstName:  <input name="firstname" [(ngModel)]="firstname" style="padding:2px; margin:5px;" />
+      LastName:  <input name="lastname" [(ngModel)]="lastname" style="padding:2px; margin:5px;" />
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-12">
+      VisitDate:  <input name="newVisitDate" [(ngModel)]="newVisitDate" style="padding:2px; margin:5px;" />
+      Notes:  <input name="newNote" [(ngModel)]="newNote" style="padding:2px; margin:5px;" />
+      <button (click)="addVisit()" style="padding:2px; margin:5px;">Add Visit</button>
+    </div>
+  </div>
+  <h5>Output</h5>
+  <div class="row" *ngIf="results">
+    <div class="col-md-2">
+      <strong>CustomerId:</strong> {{custId}}
+    </div>
+    <div class="col-md-2">
+      <strong>FirstName:</strong> {{firstname}}
+    </div>
+    <div class="col-md-2">
+      <strong>LastName:</strong>  {{lastname}}
+    </div>
+  </div>
+  <div class="row" *ngIf="visits">
+    <div class="col-12">
+      <h6>Visits</h6>
+      <ul *ngFor="let visit of visits">
+        <li>{{visit.visitDate}}:   {{visit.notes}}</li>
+      </ul>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-12" style="padding:5px; margin:5px;">
+      <button (click)="GetPatient()" class="btn btn-secondary" style="padding:2px; margin:5px;">Get By Id</button>
+      <button (click)="CreatePatient()" class="btn btn-secondary" style="padding:2px; margin:5px;">Create Patient</button>
+      <button (click)="UpdatePatient()" class="btn btn-secondary" style="padding:2px; margin:5px;">Update Patient</button>
+      <button (click)="DeletePatient()" class="btn btn-secondary" style="padding:2px; margin:5px;">Delete Patient</button>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-12" style="padding:2px">
+      <textarea name="resultSet" class="" style="width:100%; height:100%">{{results}}</textarea>
+    </div>
+  </div>
+</div>
 
-<p aria-live="polite">Current count: <strong>{{ currentCount }}</strong></p>
-
-<button class="btn btn-primary" (click)="incrementCounter()">Increment</button>

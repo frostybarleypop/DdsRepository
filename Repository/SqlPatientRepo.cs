@@ -21,8 +21,6 @@ namespace DDSPatient.Repository
 
             using (SqlConnection connection = new SqlConnection(SqlConnectionString))
             {
-                //const string sql = "insert into SalesLT.Customer (NameStyle, Title, FirstName, LastName, MiddleName, suffix, CompanyName, SalesPerson, EmailAddress, phone, PasswordHash, PasswordSalt, rowguid, ModifiedDate) values (0, null, @first, @last, null, null, null, null, null, null, null, null, NEWID(), getdate())";
-
                 var parameters = new DynamicParameters();
                 parameters.Add("firstname", value.FirstName);
                 parameters.Add("lastname", value.LastName);
@@ -32,6 +30,19 @@ namespace DDSPatient.Repository
                 int newId = parameters.Get<int>("newId");
                 if (affectedRows.Any() && affectedRows.Count() > 0 && newId > 0)
                 {
+                    if (value.Visits != null && value.Visits.Any())
+                    {
+                        // add new visits - should be refactored to a method, used multiple times now.
+                        value.Visits.ForEach(newvisit =>
+                        {
+                            const string visitsql = "insert into visits (notes, visitdate, customerid) values (@notes,@visitdate,@Id)";
+                            var parms = new DynamicParameters();
+                            parms.Add("@Id", newId);
+                            parms.Add("@notes", newvisit.Notes);
+                            parms.Add("@visitdate", newvisit.VisitDate);
+                            connection.Query<Visit>(visitsql, parms);
+                        });
+                    }
                     //const string sql1 = "select pid, FirstName, LastName, isnull(s.url,'https://juddimageblob.blob.core.windows.net/dds-records/ce532-fig04-number-system-adult.jpg') as imageurl, s.scandate  from SalesLT.Customer c left join scans s on c.CustomerID = s.customerid where c.firstname = @first and c.lastname = @last";
                     //var results = await connection.QueryAsync<Patient>(sql1, parameters);
                     //if (results.Any())
@@ -47,13 +58,21 @@ namespace DDSPatient.Repository
             }
         }
 
-        public async Task<int> DeletePatient(int id)
+        public async Task<int> DeletePatient(Patient value)
         {
             using (SqlConnection connection = new SqlConnection(SqlConnectionString))
             {
-                const string sql = "delete from patients where id = @Id";
                 var parameters = new DynamicParameters();
-                parameters.Add("@Id", id);
+                parameters.Add("@Id", value.Id);
+
+                if (value.Visits != null && value.Visits.Any())
+                {
+                    parameters.Add("@Ids", value.Visits.Select(v => v.Id).ToList());
+                    connection.Execute("delete from visits where id in @Ids", parameters);
+                }
+
+                const string sql = "delete from patients where id = @Id";
+
                 return await connection.ExecuteAsync(sql, parameters);
             }
         }
@@ -86,6 +105,10 @@ namespace DDSPatient.Repository
                 parameters.Add("@Id", id);
 
                 var patients = (await connection.QueryAsync<Patient>(sql, parameters)).FirstOrDefault();
+                if (patients is null)
+                {
+                    return null;
+                }
                 var visits = await connection.QueryAsync<Visit>("select id, customerid, visitdate, notes from visits where customerid = @Id", parameters);
 
                 patients.Visits = visits.ToList();
@@ -105,38 +128,39 @@ namespace DDSPatient.Repository
 
                 var patients = (await connection.QueryAsync<Patient>(sql, parameters)).FirstOrDefault();
 
-                if (patient.Visits.Any(v => v.Id > 0))
+                if (patient.Visits != null && patient.Visits.Any(v => v.Id > 0))
                 {
                     //update visits
-                    patient.Visits.Where(v => v.Id > 0).ToList().ForEach(async newvisit =>
-                       {
-                           const string visitsql = "update visits set notes=@notes, visitdate=@visitdate where customerid=@Id";
-                           var parms = new DynamicParameters();
-                           parms.Add("@Id", patient.Id);
-                           parms.Add("@notes", newvisit.Notes);
-                           parms.Add("@visitdate", newvisit.VisitDate);
-                           await connection.QueryAsync<Visit>(visitsql, parms);
-                       });
+                    patient.Visits.Where(v => v.Id > 0).ToList().ForEach(newvisit =>
+                      {
+                          const string visitsql = "update visits set notes=@notes, visitdate=@visitdate where customerid=@Id";
+                          var parms = new DynamicParameters();
+                          parms.Add("@Id", patient.Id);
+                          parms.Add("@notes", newvisit.Notes);
+                          parms.Add("@visitdate", newvisit.VisitDate);
+                          connection.Query<Visit>(visitsql, parms);
+                      });
 
                 }
-                else
+
+                if (patient.Visits != null && patient.Visits.Any(v => v.Id == 0))
                 {
-                    if(patient.Visits.Any(v => v.Id == 0))
-                    {
-                        // add new visits
-                        patient.Visits.Where(v => v.Id == 0).ToList().ForEach(async newvisit =>
-                        {
-                            const string visitsql = "insert into visits (notes, visitdate, customerid) values (@notes,@visitdate,@Id)";
-                            var parms = new DynamicParameters();
-                            parms.Add("@Id", patient.Id);
-                            parms.Add("@notes", newvisit.Notes);
-                            parms.Add("@visitdate", newvisit.VisitDate);
-                            await connection.QueryAsync<Visit>(visitsql, parms);
-                        });
-                    }
+                    // add new visits
+                    patient.Visits.Where(v => v.Id == 0).ToList().ForEach(newvisit =>
+                   {
+                       const string visitsql = "insert into visits (notes, visitdate, customerid) values (@notes,@visitdate,@Id)";
+                       var parms = new DynamicParameters();
+                       parms.Add("@Id", patient.Id);
+                       parms.Add("@notes", newvisit.Notes);
+                       parms.Add("@visitdate", newvisit.VisitDate);
+                       connection.Query<Visit>(visitsql, parms);
+                   });
                 }
+
                 return await GetPatient(patient.Id);
             }
         }
+
+       
     }
 }

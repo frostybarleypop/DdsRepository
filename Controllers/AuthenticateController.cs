@@ -13,7 +13,7 @@ namespace DDSPatient.Controllers
     {
         // GET: api/Authenticate
         [HttpGet(Name = "Auth")]
-        public IActionResult Get([FromQuery] string  username)
+        public IActionResult Get([FromQuery] string username)
         {
             return Ok($"{username}");
         }
@@ -29,7 +29,11 @@ namespace DDSPatient.Controllers
         [HttpPost]
         public IActionResult Post([FromBody] Credentials creds)
         {
-            return Ok(new { value = $"{creds.username}:{creds.password}" });
+            if (creds.username.Equals(creds.password, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return Ok(new { value = $"{creds.username}:{creds.password}" });
+            }
+            return BadRequest(new { Error = "Invalid Credentials" });
         }
 
         // PUT: api/Authenticate/5

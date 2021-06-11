@@ -12,7 +12,7 @@ namespace DDSPatient.Repository
             throw new NotImplementedException();
         }
 
-        public Task<int> DeletePatient(int id)
+        public Task<int> DeletePatient(Patient id)
         {
             throw new NotImplementedException();
         }

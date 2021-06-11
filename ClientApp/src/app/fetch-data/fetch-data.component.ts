@@ -78,8 +78,8 @@ export class FetchDataComponent {
 
 interface PatientRecord {
   id: number;
-  firstName: number;
-  lastName: number;
+  firstName: string;
+  lastName: string;
   imageUrl: string;
   visits: Visits[];
 }

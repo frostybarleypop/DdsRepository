@@ -10,7 +10,7 @@ namespace DDSPatient.Repository
         Task<List<Patient>> GetAllPatients();
         Task<Patient> GetPatient(int id);
         Task<Patient> UpdatePatient(Patient patient);
-        Task<int> DeletePatient(int id);
+        Task<int> DeletePatient(Patient id);
         Task<Patient> CreatePatient(Patient value);
     }
 }
