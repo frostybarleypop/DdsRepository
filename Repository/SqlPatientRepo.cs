@@ -12,7 +12,8 @@ namespace DDSPatient.Repository
         readonly string SqlConnectionString;
         public SqlPatientRepo()
         {
-            SqlConnectionString = "Server = tcp:webproducts.database.windows.net,1433; Initial Catalog = Dds; Persist Security Info = False; User ID = websa; Password = Poi890890; MultipleActiveResultSets = False; Encrypt = True; TrustServerCertificate = False; Connection Timeout = 30;";
+            //not a good practice to hard code this here
+            SqlConnectionString = "Server = tcp:webproducts.database.windows.net,1433; Initial Catalog = Dds; Persist Security Info = False; User ID = tempsa; Password = SuperSecret!; MultipleActiveResultSets = False; Encrypt = True; TrustServerCertificate = False; Connection Timeout = 30;";
 
         }
 
@@ -76,8 +77,8 @@ namespace DDSPatient.Repository
             using (SqlConnection connection = new SqlConnection(SqlConnectionString))
             {
                 var visits = await connection.QueryAsync<Visit>("select id, customerid, visitdate, notes from visits");
-                
-                //this should probably be a stored proc for efficency.
+
+                //this should probably be a stored proc for efficiency.
                 const string sql = "select p.id, FirstName, LastName,s.url as imageurl, s.scandate  from patients p left join scans s on p.id = s.customerid where p.id in @Ids";
                 var parameters = new DynamicParameters();
                 parameters.Add("@Ids", visits.Select(p => p.CustomerId).Distinct());

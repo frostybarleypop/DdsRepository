@@ -25,7 +25,7 @@
         <td>{{record.id}}</td>
         <td>{{record.firstName}}</td>
         <td>{{record.lastName}}</td>
-        <td><img src="{{record.imageUrl}}" alt="{{record.lastName}} x-ray" /></td>
+        <td><img src="{{record.imageUrl}}" alt="{{record.lastName}} x-ray" *ngIf="record.imageUrl" /></td>
       </tr>
       <tr *ngFor="let visit of record.visits">
         <td>Last Visit Date: {{visit.visitDate | date:'short'}}</td>
