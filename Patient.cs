@@ -5,6 +5,7 @@ namespace DDSPatient
 {
     public class Patient
     {
+        //todo: add required attribites for model validation
         public int Id { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -14,6 +15,7 @@ namespace DDSPatient
 
     public class Visit
     {
+        //todo: add required attribites for model validation
         public int Id { get; set; }
         public int CustomerId { get; set; }
         public DateTime VisitDate { get; set; }

@@ -15,6 +15,7 @@ namespace DDSPatient
     {
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, IAuthorizationRequirement requirement)
         {
+            //right now as long as you are authenticated you are authorized.
             context.Succeed(requirement);
         }
     }

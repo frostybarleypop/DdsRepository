@@ -11,20 +11,7 @@ namespace DDSPatient.Controllers
     [ApiController]
     public class AuthenticateController : ControllerBase
     {
-        // GET: api/Authenticate
-        [HttpGet(Name = "Auth")]
-        public IActionResult Get([FromQuery] string username)
-        {
-            return Ok($"{username}");
-        }
-
-        //// GET: api/Authenticate/5
-        //[HttpGet("{id}", Name = "GetToken")]
-        //public string Get(int id)
-        //{
-        //    return "value";
-        //}
-
+                       
         // POST: api/Authenticate
         [HttpPost]
         public IActionResult Post([FromBody] Credentials creds)
@@ -35,17 +22,6 @@ namespace DDSPatient.Controllers
             }
             return BadRequest(new { Error = "Invalid Credentials" });
         }
-
-        // PUT: api/Authenticate/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
+               
     }
 }

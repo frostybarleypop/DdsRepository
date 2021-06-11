@@ -18,7 +18,6 @@ namespace DDSPatient.Repository
 
         public async Task<Patient> CreatePatient(Patient value)
         {
-
             using (SqlConnection connection = new SqlConnection(SqlConnectionString))
             {
                 var parameters = new DynamicParameters();
@@ -26,11 +25,12 @@ namespace DDSPatient.Repository
                 parameters.Add("lastname", value.LastName);
                 parameters.Add("newId", dbType: System.Data.DbType.Int32, direction: System.Data.ParameterDirection.Output);
 
+                //using a stored proc here mostly to get the data created and the patient ID out in one go.
                 var affectedRows = await connection.QueryAsync<int>("CreatePatient", parameters, commandType: System.Data.CommandType.StoredProcedure);
                 int newId = parameters.Get<int>("newId");
                 if (affectedRows.Any() && affectedRows.Count() > 0 && newId > 0)
                 {
-                    if (value.Visits != null && value.Visits.Any())
+                    if (value.Visits != null && value.Visits.Any()) //visits are foreign keyed to patients and need to be added after.
                     {
                         // add new visits - should be refactored to a method, used multiple times now.
                         value.Visits.ForEach(newvisit =>
@@ -43,16 +43,9 @@ namespace DDSPatient.Repository
                             connection.Query<Visit>(visitsql, parms);
                         });
                     }
-                    //const string sql1 = "select pid, FirstName, LastName, isnull(s.url,'https://juddimageblob.blob.core.windows.net/dds-records/ce532-fig04-number-system-adult.jpg') as imageurl, s.scandate  from SalesLT.Customer c left join scans s on c.CustomerID = s.customerid where c.firstname = @first and c.lastname = @last";
-                    //var results = await connection.QueryAsync<Patient>(sql1, parameters);
-                    //if (results.Any())
-                    //{
+
                     return await GetPatient(newId);
-                    //}
-                    //else
-                    //{
-                    //     throw new Exception("Unable to retreive created patient");
-                    //}
+
                 }
                 throw new Exception("Unable to create new patient");
             }
@@ -64,7 +57,8 @@ namespace DDSPatient.Repository
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@Id", value.Id);
-
+                
+                //visits are foreign keyed to patients and need to be deleted first.
                 if (value.Visits != null && value.Visits.Any())
                 {
                     parameters.Add("@Ids", value.Visits.Select(v => v.Id).ToList());
@@ -82,14 +76,13 @@ namespace DDSPatient.Repository
             using (SqlConnection connection = new SqlConnection(SqlConnectionString))
             {
                 var visits = await connection.QueryAsync<Visit>("select id, customerid, visitdate, notes from visits");
-
-                //const string sql = "select customerid as id, FirstName, LastName, 'https://res.cloudinary.com/mtree/image/upload/f_auto,q_auto,f_jpg,fl_attachment:ce532-fig04-number-system-adult/dentalcare/%2F-%2Fmedia%2Fdentalcareus%2Fprofessional-education%2Fce-courses%2Fcourse0501-0600%2Fce532%2Fimages%2Fce532-fig04-number-system-adult.jpg%3Fh%3D494%26la%3Den-us%26w%3D691%26v%3D1-201706011336?h=494&la=en-US&w=691' as imageUrl from SalesLT.Customer where customerid in @Ids";
-                const string sql = "select p.id, FirstName, LastName, isnull(s.url,'https://juddimageblob.blob.core.windows.net/dds-records/ce532-fig04-number-system-adult.jpg') as imageurl, s.scandate  from patients p left join scans s on p.id = s.customerid where p.id in @Ids";
+                
+                //this should probably be a stored proc for efficency.
+                const string sql = "select p.id, FirstName, LastName,s.url as imageurl, s.scandate  from patients p left join scans s on p.id = s.customerid where p.id in @Ids";
                 var parameters = new DynamicParameters();
                 parameters.Add("@Ids", visits.Select(p => p.CustomerId).Distinct());
 
                 var patients = (await connection.QueryAsync<Patient>(sql, parameters)).ToList();
-
 
                 patients.ForEach(p => p.Visits = visits.Where(v => v.CustomerId == p.Id).ToList());
                 return patients;
@@ -100,7 +93,7 @@ namespace DDSPatient.Repository
         {
             using (SqlConnection connection = new SqlConnection(SqlConnectionString))
             {
-                const string sql = "select p.id, FirstName, LastName, isnull(s.url,'https://juddimageblob.blob.core.windows.net/dds-records/ce532-fig04-number-system-adult.jpg') as imageurl, s.scandate  from patients p left join scans s on p.id = s.customerid where p.id = @Id";
+                const string sql = "select p.id, FirstName, LastName, s.url as imageurl, s.scandate  from patients p left join scans s on p.id = s.customerid where p.id = @Id";
                 var parameters = new DynamicParameters();
                 parameters.Add("@Id", id);
 
@@ -161,6 +154,6 @@ namespace DDSPatient.Repository
             }
         }
 
-       
+
     }
 }
